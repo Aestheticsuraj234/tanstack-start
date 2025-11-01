@@ -3,23 +3,37 @@ import { createFileRoute, notFound } from '@tanstack/react-router'
 export const Route = createFileRoute('/user/$id')({
   component: RouteComponent,
   notFoundComponent: () => <div>Not Found</div>,
+  errorComponent: ({ error }) => <div className='text-red-500 font-extrabold text-lg'>Error: {error.message}</div>,
+  pendingComponent: () => <div>Loading...</div>,
+  loader: async ({ params }) => {
 
-  loader: ({ params }) => {
 
-    if (Number(params.id) > 10) {
+    const res = await fetch(`https://jsonplaceholder.typicode.com/users/${params.id}`);
+    const user = await res.json();
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch users");
+    }
+
+    if (!user.id) {
       throw notFound();
     }
 
-    const resp = {userName:'Suraj'};
 
-    return resp
+    return { user }
+
 
   }
 })
 
 function RouteComponent() {
-  const { id } = Route.useParams()
+
   const data = Route.useLoaderData()
 
-  return <div>Hello "/user"{id} , {data.userName}</div>
+  console.log(data)
+  return (
+    <div>
+      hello , this is the user:  {JSON.stringify(data)}
+    </div>
+  )
 }
